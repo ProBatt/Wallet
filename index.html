@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> WALLET QR CODE</title>
+    <title>WALLET QR CODE</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <script src="https://fastly.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module">
@@ -64,6 +64,27 @@
             outline: none;
             box-shadow: 0 0 10px rgba(255, 128, 0, 0.5);
         }
+
+        /* Custom SweetAlert2 CSS */
+        .swal2-popup {
+            width: 300px; /* ปรับความกว้างของ SweetAlert2 */
+            border-radius: 20px; /* ปรับขอบโค้ง */
+            background: #ffa500; /* ธีมสีส้มเหลือง */
+            color: #000000; /* สีข้อความ */
+        }
+        .swal2-confirm {
+            padding: 8px 20px; /* ปรับขนาด padding ของปุ่ม */
+            font-size: 14px; /* ปรับขนาดฟอนต์ */
+            border-radius: 10px; /* ปรับมุมโค้งของปุ่ม */
+            height: auto; /* ปรับความสูงของปุ่ม */
+            line-height: 1.5; /* ปรับระยะห่างของข้อความในปุ่ม */
+            background-color: #ff4500; /* สีแดงส้ม */
+            border: none; /* ลบเส้นขอบ */
+            color: white; /* สีข้อความปุ่ม */
+        }
+        .swal2-confirm:hover {
+            background-color: #ff6347; /* สีแดงส้มเมื่อ hover */
+        }
     </style>
 </head>
 <body>
@@ -71,12 +92,12 @@
 <div class="container">
     <img src="https://www.truemoney.com/wp-content/uploads/2020/12/truemoneywallet-logo-20190424.png" alt="PAPER WORK PromptPay" width="230">
     <br><br>
-    <h5 class="text-dark">QR WALLET</h5>
+    <h5 class="text-dark">แลกเงินด้วย QR WALLET</h5>
     
     <input type="number" id="amount" class="input-amount my-2" placeholder="กรุณาระบุจำนวนเงิน" min="0">
     
     <div class="qr-box">
-        <img id="promptpay-qr-img" src="" alt="PromptPay">
+        <img id="promptpay-qr-img" src="" alt="PAPER WORK PromptPay">
     </div>
 
     <button class="btn btn-warning w-100 mt-3" id="alert-save">📢 ขั้นตอนการใช้งาน</button>
@@ -92,15 +113,17 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(() => {
-        let phoneNumber = "140000650021800"; 
+        let phoneNumber = "0000000000"; 
 
+        // สร้าง QR Code ทันทีเมื่อโหลดหน้า (ไม่มีจำนวนเงิน)
         updateQRCode();
 
         $('#amount').on('input', () => {
             let amount = $('#amount').val() ? Number($('#amount').val()) : 0;
-            let fee = 0;  
+            let fee = 0;  // ค่าธรรมเนียมคงที่ 0บาท
             let total = amount + fee;
 
+            // การแสดงค่าธรรมเนียมและยอดรวมพร้อมการจัดรูปแบบตัวเลข
             $('#fee').text(`ค่าธรรมเนียม: ${fee.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท`);
             $('#total').text(`ยอดที่ต้องชำระ: ${total.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท`);
             
@@ -108,78 +131,67 @@
         });
 
         function updateQRCode(amount) {
+            // กำหนด options หากมีการระบุจำนวนเงิน (amount > 0)
             let options = {};
             if (amount && amount > 0) {
                 options.amount = amount;
             }
+            // สร้างข้อมูลสำหรับ QR Code ด้วย promptpayQr
             let qrData = promptpayQr(phoneNumber, options);
-            let qrUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${qrData}&size=500x500&margin=10`;
+            let qrUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${qrData}&size=500x500&margin=5`;
             $('#promptpay-qr-img').attr('src', qrUrl);
         }
 
+        // เมื่อคลิกปุ่ม จะเปิด SweetAlert2
         $('#alert-save').click(function() {
             Swal.fire({
                 title: 'ขั้นตอนการใช้งาน',
                 text: 'กรอกจำนวนเงิน แคปภาพหน้าจอ หรือกดค้างที่ QR Code เพื่อทำการบันทึก',
                 icon: 'info',
                 confirmButtonText: 'ตกลง',
-                confirmButtonColor: '#ff8000',
-                background: '#000000',
-                color: '#ffffff'
+                confirmButtonColor: '#ff4500', // สีแดงส้ม
+                background: '#ffa500', // ธีมสีส้มเหลือง
+                color: '#000000', // สีข้อความ
+                showClass: {
+                    popup: 'animate__animated animate__fadeIn'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__fadeOut'
+                },
+                customClass: {
+                    popup: 'swal2-popup', // ใช้คลาสที่เราปรับแต่ง
+                    confirmButton: 'swal2-confirm' // ใช้คลาสที่เราปรับแต่งสำหรับปุ่ม
+                }
             });
         });
 
-        let attemptCount = localStorage.getItem("attemptCount") ? parseInt(localStorage.getItem("attemptCount")) : 0;
-        let blockUntil = localStorage.getItem("blockUntil");
-
-        function isBlocked() {
-            return blockUntil && new Date().getTime() < parseInt(blockUntil);
-        }
-
-        function blockUser() {
-            let blockDuration = (Math.floor(Math.random() * 16) + 15) * 60 * 1000; 
-            let blockExpires = new Date().getTime() + blockDuration;
-            localStorage.setItem("blockUntil", blockExpires);
-            $("body").html("<h2 style='color:red; text-align:center; margin-top:50px;'>คุณถูกบล็อกชั่วคราว (15 นาที)</h2>");
-
-        }
-
-        if (isBlocked()) {
-            blockUser();
-            return;
-        }
-
-        function handleViolation() {
-            attemptCount++;
-            localStorage.setItem("attemptCount", attemptCount);
-            
-            if (attemptCount >= 3) {
-                blockUser();
-            } else {
-                Swal.fire({
-                    title: 'WARNING',
-                    text: `ห้ามกระทำการนี้ (ครั้งที่ ${attemptCount}/3)`,
-                    icon: 'warning',
-                    confirmButtonColor: '#ff8000',
-                    background: '#000000',
-                    color: '#ffffff'
-                });
-            }
-        }
-
+        // ป้องกันการคลิกขวา
         $(document).on("contextmenu", function(e) {
-            handleViolation();
+            Swal.fire({
+                title: 'ERROR',
+                text: ' การคัดลอกหรือการคลิกขวาถูกปิดใช้งาน',
+                icon: 'error',
+                confirmButtonColor: '#ff4500', // สีแดงส้ม
+                background: '#ffa500', // ธีมสีส้มเหลือง
+                color: '#000000' // สีข้อความ
+            });
             return false;
         });
 
-        $(document).on("copy paste", function(e) {
-            handleViolation();
+        // ป้องกันการคัดลอก
+        $(document).on("copy", function(e) {
+            Swal.fire({
+                title: 'ERROR',
+                text: 'การคัดลอกหรือการคลิกขวาถูกปิดใช้งาน',
+                icon: 'error',
+                confirmButtonColor: '#ff4500', // สีแดงส้ม
+                background: '#ffa500', // ธีมสีส้มเหลือง
+                color: '#000000' // สีข้อความ
+            });
             return false;
         });
-
     });
 </script>
 
 </body>
-  </html>
- 
+</html>
